@@ -1,0 +1,51 @@
+from langchain.vectorstores import DeepLake
+from repogpt.crawler import crawl_and_split, index
+from repogpt.qa.qa import QA
+from repogpt import config_utils
+import argparse
+import logging
+
+logger = logging.getLogger("repogpt_logger")
+
+
+def parse_arguments():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--init", "-I", action='store_true', help='Use this flag to crawl and index repository')
+    parser.add_argument('config_file', help='Path to the config file')
+    return parser.parse_args()
+
+
+def main():
+    args = parse_arguments()
+
+    # create embedding object - required for both indexing and qa
+    embeddings = config_utils.read_config_embeddings(args.config_file)
+    repo_path, vs_path = config_utils.read_config_dir_paths(args.config_file)
+
+    # if running in init mode, just crawl and index the repo
+    if args.init:
+        logger.info("Crawling repo...")
+        repo_docs = crawl_and_split(repo_path)
+        index(repo_docs, embeddings, vs_path)
+        logging.info(f"chunks successfully indexed to vector store located at {repo_path}")
+
+    # running in qa mode
+    else:
+        logger.info("Initializing LLM...")
+        llm = config_utils.read_config_llm(args.config_file)
+        vs = DeepLake(dataset_path=vs_path, read_only=True, embedding_function=embeddings)
+        qa = QA(llm, vs)
+
+        while True:
+            query = input("\nEnter a query: ")
+            if query == "exit":
+                break
+            if query.strip() == "":
+                continue
+
+            resp = qa.get_resp(query)
+            print(resp)
+
+
+if __name__ == "__main__":
+    main()

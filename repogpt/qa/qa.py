@@ -1,22 +1,32 @@
-from langchain.chat_models import ChatOpenAI
-from langchain.chains import ConversationalRetrievalChain
-from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.vectorstores import DeepLake
+from langchain.llms import BaseLLM
+from langchain.docstore.document import Document
+from typing import List
 
 
 class QA:
 
-    def __init__(self, db_location: str):
-        self.model = ChatOpenAI(model_name='gpt-3.5-turbo-16k')
-        self.embedding_model = OpenAIEmbeddings()
-        self.db = DeepLake(dataset_path=db_location, read_only=True, embedding_function=self.embedding_model)
-        self.retriever = self.db.as_retriever()
+    def __init__(self, llm: BaseLLM, deeplake_store: DeepLake):
+        self.llm = llm
+        self.retriever = deeplake_store.as_retriever()
         self.retriever.search_kwargs['distance_metric'] = 'cos'
         self.retriever.search_kwargs['fetch_k'] = 20
         self.retriever.search_kwargs['maximal_marginal_relevance'] = False
-        self.retriever.search_kwargs['k'] = 3
-        self.qa_chain = ConversationalRetrievalChain.from_llm(self.model, retriever=self.retriever,
-                                                              return_source_documents=True)
+        self.retriever.search_kwargs['k'] = 15
 
-    def query(self, query_str: str) -> str:
-        return self.qa_chain({"question": query_str, "chat_history":[]})['answer']
+    def create_prompt(self, query_str: str, similar_chunks: List[Document]) -> str:
+        """Build the final prompt string using query and similar chunks"""
+        similar_chunk_str = '\n'.join([chunk.page_content for chunk in similar_chunks])
+        # TODO: add to prompt to not use test files if query does not explicitly mention test files
+        # TODO: Try structured json prompt
+        final_prompt = f"Given these code snippets, \n {similar_chunk_str}\n The question is: {query_str}"
+        return final_prompt
+
+    def get_resp(self, query_str: str) -> str:
+        """Given a string, get similar chunks and construct a prompt feed it to LLM and return response"""
+        # embed query + get similar code chunks
+        similar_chunks = self.retriever.get_relevant_documents(query_str)[::-1]
+        for chunk in similar_chunks:
+            print(chunk.metadata['source'])
+        qa_prompt = self.create_prompt(query_str, similar_chunks)
+        return self.llm(qa_prompt)

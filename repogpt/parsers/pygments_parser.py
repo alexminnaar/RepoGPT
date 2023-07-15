@@ -8,6 +8,7 @@ class PygmentsParser(Parser):
 
     @staticmethod
     def get_file_summary(code: str, file_name: str = None) -> List[str]:
+        """Use the Pygments parser to extract summary of file's methods and classes and their starting lines"""
         lexer = get_lexer_for_filename(file_name)
         tokens = lexer.get_tokens(code)
 
@@ -15,7 +16,7 @@ class PygmentsParser(Parser):
 
         line = 1
         for token_type, token_value in tokens:
-            if token_type == Token.Name.Function:
+            if token_type == Token.Name.Function or token_type == Token.Name.Function.Magic:
                 classes_and_methods.append(f"method named {token_value} starting on line {line}")
             elif token_type == Token.Name.Class:
                 classes_and_methods.append(f"class named {token_value} starting on line {line}")
