@@ -21,12 +21,18 @@ def read_config_embeddings(config_file: str) -> Embeddings:
     config.read(config_file)
 
     if config.has_section("hf-embeddings"):
+
         embedding_name = get_config_option(config, "hf-embeddings", "EMBEDDING_NAME")
-        embeddings = HuggingFaceEmbeddings(model_name=embedding_name,
+        if not embedding_name:
+            embeddings = HuggingFaceEmbeddings()
+        else:
+            embeddings = HuggingFaceEmbeddings(model_name=embedding_name,
                                            model_kwargs={'device': 'cpu'},
                                            encode_kwargs={'normalize_embeddings': False})
+
     elif config.has_section("openai-embeddings"):
-        # TODO: how do you specify the embedding model?
+        # OpenAIEmbeddings look to be hardcoded with 'text-embedding-ada-002' so we can't specify a model name here
+        # https://github.com/hwchase17/langchain/blob/master/langchain/embeddings/openai.py
         embedding_name = get_config_option(config, "openai-embeddings", "EMBEDDING_NAME")
         embeddings = OpenAIEmbeddings()
 

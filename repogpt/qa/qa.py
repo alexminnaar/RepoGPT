@@ -24,7 +24,7 @@ class QA:
 
     def get_resp(self, query_str: str) -> str:
         """Given a string, get similar chunks and construct a prompt feed it to LLM and return response"""
-        # embed query + get similar code chunks
+        # reverse similar chunks so that most relevant are less likely to be forgotten
         similar_chunks = self.retriever.get_relevant_documents(query_str)[::-1]
         for chunk in similar_chunks:
             print(chunk.metadata['source'])

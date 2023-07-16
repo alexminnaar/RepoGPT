@@ -5,7 +5,8 @@ from repogpt import config_utils
 import argparse
 import logging
 
-logger = logging.getLogger("repogpt_logger")
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger("repogpt_cli_logger")
 
 
 def parse_arguments():
@@ -37,7 +38,7 @@ def main():
         qa = QA(llm, vs)
 
         while True:
-            query = input("\nEnter a query: ")
+            query = input("\nAsk a question: ")
             if query == "exit":
                 break
             if query.strip() == "":

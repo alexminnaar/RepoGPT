@@ -1,8 +1,6 @@
 # RepoGPT
 An LLM-based coding mentor for your repository
 
-## Install
-
 ## What is RepoGPT?
 
 Say you are introduced to a new code repository that you know nothing about.  RepoGPT is a tool that allows you to gain 
@@ -18,15 +16,6 @@ are then made into a prompt for an LLM and the response is returned which contai
 
 ### Chunking with context
 
-A raw chunk from a file might look something like this
-
-```python
-    def sum(self, a, b):
-        return a + b
-    
-    def mult(self, a, b):
-        return a * b
-```
 A chunk like this can be retrieved from the vector store and passed into a prompt for the LLM, however it was found that
 the LLM responses would often be wrong due to a lack of context around this chunk.  To fix this, RepoGPT adds additional 
 context to the chunk including the file name and file path associated with the chunk as well as a summary of the file the 
@@ -35,6 +24,23 @@ seems to improve the LLM's responses.
  
 ## Usage
 
+### Initialize Repo
+This step crawls and indexes the repo specified in `example_config.ini`.
+```commandline
+python repogpt/cli/cli.py --init example_config.ini
+```
+
+### Ask Questions
+Run the command
+```commandline
+python repogpt/cli/cli.py example_config.ini 
+```
+you should then see
+
+```commandline
+Ask a question: 
+```
+Then ask your question and wait for the response.
 
 ## Testing
 

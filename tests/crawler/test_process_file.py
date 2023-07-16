@@ -14,7 +14,7 @@ class CrawlerTestCase(unittest.TestCase):
                 hello_world()
                 """
 
-        docs = process_file(PYTHON_CODE, "/my/file/path/", "hello.py", ".py", 100, 0)
+        docs = process_file([Document(page_content=PYTHON_CODE)], "/my/file/path/", "hello.py", ".py", 100, 0)
 
         expected_docs = [Document(
             page_content='The following code snippet is from a file at location /my/file/path/hello.py starting at line 2. In this file there is a method named hello_world starting on line 1. The code snippet starting at line 2 is \n         ```\ndef hello_world():\n                    print("Hello, World!")\n```',
