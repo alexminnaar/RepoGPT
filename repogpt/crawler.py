@@ -13,7 +13,8 @@ import fnmatch
 import logging
 import traceback
 
-logger = logging.getLogger("repogpt_logger")
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger("repogpt_crawler_logger")
 
 LANG_MAPPING = {
     '.py': Language.PYTHON,
@@ -58,7 +59,7 @@ def is_git_dir(dir_path: str) -> bool:
     return os.path.isdir(git_dir)
 
 
-def process_file(file_contents: Document, dir_path: str, file_name: str, extension: str, chunk_size: int = 3000,
+def process_file(file_contents: List[Document], dir_path: str, file_name: str, extension: str, chunk_size: int = 3000,
                  chunk_overlap: int = 500) -> List[Document]:
     """For a given file, get the summary, split into chunks and create context document chunks to be indexed"""
     file_doc = file_contents[0]
@@ -84,7 +85,6 @@ def process_file(file_contents: Document, dir_path: str, file_name: str, extensi
                            f"The code snippet starting at line {starting_line} is \n \
         ```\n{doc.page_content}\n```"
 
-    # print(split_docs)
     return split_docs
 
 
@@ -100,6 +100,8 @@ def filter_files(root_dir: str) -> List[FileProperties]:
             # only want to crawl accepted file types and files not in hidden directories
             if extension in LANG_MAPPING and not contains_hidden_dir(dir_path):
                 files_to_crawl.append(FileProperties(dir_path, file, extension))
+            else:
+                logger.info(f"Skipping {os.path.join(dir_path, file)}. File/directory type not supported.")
     return files_to_crawl
 
 
