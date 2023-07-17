@@ -20,24 +20,18 @@ def read_config_embeddings(config_file: str) -> Embeddings:
     config = configparser.ConfigParser()
     config.read(config_file)
 
-    if config.has_section("hf-embeddings"):
+    if config.has_section("embeddings"):
 
-        embedding_name = get_config_option(config, "hf-embeddings", "EMBEDDING_NAME")
-        if not embedding_name:
+        embedding_name = get_config_option(config, "hf-embeddings", "EMBEDDING_TYPE")
+
+        if embedding_name == "openai":
+            embeddings = OpenAIEmbeddings()
+        elif embedding_name == "huggingface":
             embeddings = HuggingFaceEmbeddings()
         else:
-            embeddings = HuggingFaceEmbeddings(model_name=embedding_name,
-                                           model_kwargs={'device': 'cpu'},
-                                           encode_kwargs={'normalize_embeddings': False})
-
-    elif config.has_section("openai-embeddings"):
-        # OpenAIEmbeddings look to be hardcoded with 'text-embedding-ada-002' so we can't specify a model name here
-        # https://github.com/hwchase17/langchain/blob/master/langchain/embeddings/openai.py
-        embedding_name = get_config_option(config, "openai-embeddings", "EMBEDDING_NAME")
-        embeddings = OpenAIEmbeddings()
-
+            raise ValueError("RepoGPT currently only supports 'openai' or 'huggingface' embeddings!")
     else:
-        raise ValueError("Config file must contain either hf-embeddings or openai-embeddings sections!")
+        raise ValueError("Config file must contain 'embeddings' section!")
 
     return embeddings
 
