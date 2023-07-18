@@ -1,7 +1,7 @@
-# RepoGPT
+# 🔎 RepoGPT
 An LLM-based coding mentor for your repository
 
-![build](https://github.com/alexminnaar/repogpt/actions/workflows/ci.yml/badge.svg)
+[![build](https://github.com/alexminnaar/repogpt/actions/workflows/ci.yml/badge.svg)
 
 ## What is RepoGPT?
 
@@ -18,45 +18,65 @@ are then made into a prompt for an LLM and the response is returned which contai
 
 ### Chunking with Context
 
-A chunk like this can be retrieved from the vector store and passed into a prompt for the LLM, however it was found that
-the LLM responses would often be wrong due to a lack of context around this chunk.  To fix this, RepoGPT adds additional 
-context to the chunk including the file name and file path associated with the chunk as well as a summary of the file the 
-chunk was taken from and the line number where the chunk appears in the file.  This additional contextual information
-seems to improve the LLM's responses.
+It was found that the LLM responses would often be wrong due to a lack of context around the chunk.  To fix this, 
+RepoGPT adds additional context to the chunk including
+* The file name and file path associated with the chunk.
+* A summary of the classes and methods contained in the file.
+* The line number where the chunk appears in the file.  
+
+This additional contextual information seems to improve the LLM's responses.
  
+## Supported Languages
+
+The following languages/file types can be crawled with RepoGPT
+
+* Python
+* C++
+* JAVA
+* GO
+* Javascript/Typescript
+* PHP
+* Protobuf
+* Rust
+* Ruby
+* Scala
+* Swift
+* Markdown
+* Latex
+* HTML
+
+## Supported LLMs
+
+* OpenAI
+* LLama.cpp (experimental)
+* GPT4ALL (experimental)
+
+## Supported Embeddings
+
+* OpenAI (⚠️ Warning: Crawling a large repo could result in a large number of embedding requests (possibly ~10,000's) ⚠️)
+* HuggingFace
+
 ## Usage
 
-### Create a config.ini File
+### 1. Create a config.ini File
 The `config.ini` file sets the parameters that RepoGPT needs to run.  They are
 
 * `REPO_PATH`: The path to the root directory of the git repo.
 * `VS_PATH`: The path where the vector store will be created.
-* `EMBEDDING_TYPE`: The name of the embedding being used - currently this can only take value 'openai' or 'huggingface'.
-* `OPENAI_MODEL_NAME`: The name of the OpenAI model to use e.g. `gpt-3.5-turbo-16k`.
+* `NUM_RESULTS`: The number of search results returned by the vector store for a given query.
+* `EMBEDDING_TYPE`: The name of the embedding being used.
+* `MODEL_NAME`: The name of the LLM to use.
 
-An example `config.ini` would look like
+Example `config.ini` files can be found in the `example_config_files` directory in this repo.
 
-```
-[repo]
-REPO_PATH = /my/repo/path
 
-[vectorstore]
-VS_PATH = /my/vs/path
-
-[embeddings]
-EMBEDDING_TYPE = openai
-
-[openai-llm]
-OPENAI_MODEL_NAME = gpt-3.5-turbo-16k
-```
-
-### Initialize Repo
+### 2. Initialize Repo
 This step crawls and indexes the repo specified in `example_config.ini`.
 ```commandline
 python repogpt/cli/cli.py --init example_config.ini
 ```
 
-### Ask Questions
+### 3. Ask Questions
 Run the command
 ```commandline
 python repogpt/cli/cli.py example_config.ini 
@@ -68,8 +88,4 @@ Ask a question:
 ```
 Then ask your question and wait for the response.
 
-## Testing
 
-```commandline
-python -m pytest
-```

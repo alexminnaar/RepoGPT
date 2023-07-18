@@ -21,7 +21,7 @@ def main():
 
     # create embedding object - required for both indexing and qa
     embeddings = config_utils.read_config_embeddings(args.config_file)
-    repo_path, vs_path = config_utils.read_config_dir_paths(args.config_file)
+    repo_path, vs_path, num_results = config_utils.read_config_dir_paths(args.config_file)
 
     # if running in init mode, just crawl and index the repo
     if args.init:
@@ -35,7 +35,7 @@ def main():
         logger.info("Initializing LLM...")
         llm = config_utils.read_config_llm(args.config_file)
         vs = DeepLake(dataset_path=vs_path, read_only=True, embedding_function=embeddings)
-        qa = QA(llm, vs)
+        qa = QA(llm, vs, num_results)
 
         while True:
             query = input("\nAsk a question: ")
