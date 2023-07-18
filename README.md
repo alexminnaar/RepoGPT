@@ -1,7 +1,7 @@
 # RepoGPT
 An LLM-based coding mentor for your repository
 
-https://github.com/alexminnaar/repogpt/actions/workflows/ci.yml/badge.svg
+![build](https://github.com/alexminnaar/repogpt/actions/workflows/ci.yml/badge.svg)
 
 ## What is RepoGPT?
 
