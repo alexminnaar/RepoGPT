@@ -1,7 +1,7 @@
 # 🔎 RepoGPT
 An LLM-based coding mentor for your repository
 
-[![build](https://github.com/alexminnaar/repogpt/actions/workflows/ci.yml/badge.svg)
+![build](https://github.com/alexminnaar/repogpt/actions/workflows/ci.yml/badge.svg)
 
 ## What is RepoGPT?
 
@@ -53,8 +53,10 @@ The following languages/file types can be crawled with RepoGPT
 
 ## Supported Embeddings
 
-* OpenAI (⚠️ Warning: Crawling a large repo could result in a large number of embedding requests (possibly ~10,000's) ⚠️)
+* OpenAI
 * HuggingFace
+
+⚠️ Warning: Crawling a large repo while using OpenAI embeddings could result in many thousands of embedding requests ⚠️
 
 ## Usage
 
