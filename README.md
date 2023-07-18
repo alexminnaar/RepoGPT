@@ -1,6 +1,8 @@
 # RepoGPT
 An LLM-based coding mentor for your repository
 
+https://github.com/alexminnaar/repogpt/actions/workflows/ci.yml/badge.svg
+
 ## What is RepoGPT?
 
 Say you are introduced to a new code repository that you know nothing about.  RepoGPT is a tool that allows you to gain 
