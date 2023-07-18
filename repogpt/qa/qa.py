@@ -6,13 +6,12 @@ from typing import List
 
 class QA:
 
-    def __init__(self, llm: BaseLLM, deeplake_store: DeepLake):
+    def __init__(self, llm: BaseLLM, deeplake_store: DeepLake, num_results: int):
         self.llm = llm
         self.retriever = deeplake_store.as_retriever()
         self.retriever.search_kwargs['distance_metric'] = 'cos'
-        self.retriever.search_kwargs['fetch_k'] = 20
         self.retriever.search_kwargs['maximal_marginal_relevance'] = False
-        self.retriever.search_kwargs['k'] = 15
+        self.retriever.search_kwargs['k'] = num_results
 
     def create_prompt(self, query_str: str, similar_chunks: List[Document]) -> str:
         """Build the final prompt string using query and similar chunks"""
@@ -26,6 +25,7 @@ class QA:
         """Given a string, get similar chunks and construct a prompt feed it to LLM and return response"""
         # reverse similar chunks so that most relevant are less likely to be forgotten
         similar_chunks = self.retriever.get_relevant_documents(query_str)[::-1]
+        print("Relevant files:")
         for chunk in similar_chunks:
             print(chunk.metadata['source'])
         qa_prompt = self.create_prompt(query_str, similar_chunks)

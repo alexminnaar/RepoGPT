@@ -2,3 +2,5 @@ langchain
 pygments
 tqdm
 deeplake
+gpt4all
+llama-cpp-python
