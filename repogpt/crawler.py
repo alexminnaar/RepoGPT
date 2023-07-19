@@ -101,7 +101,7 @@ def filter_files(root_dir: str) -> List[FileProperties]:
             if extension in LANG_MAPPING and not contains_hidden_dir(dir_path):
                 files_to_crawl.append(FileProperties(dir_path, file, extension))
             else:
-                logger.info(f"Skipping {os.path.join(dir_path, file)}. File/directory type not supported.")
+                logger.info(f"Skipping {os.path.join(dir_path, file)} - File/directory type not supported.")
     return files_to_crawl
 
 

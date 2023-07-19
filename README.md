@@ -75,13 +75,13 @@ Example `config.ini` files can be found in the `example_config_files` directory 
 ### 2. Initialize Repo
 This step crawls and indexes the repo specified in `example_config.ini`.
 ```commandline
-python repogpt/cli/cli.py --init example_config.ini
+python cli.py --init example_config.ini
 ```
 
 ### 3. Ask Questions
 Run the command
 ```commandline
-python repogpt/cli/cli.py example_config.ini 
+python cli.py example_config.ini 
 ```
 you should then see
 
