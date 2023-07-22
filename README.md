@@ -24,7 +24,13 @@ RepoGPT adds additional context to the chunk including
 * A summary of the classes and methods contained in the file.
 * The line number where the chunk appears in the file.  
 
-This additional contextual information seems to improve the LLM's responses.
+## Demo
+
+### Use Case #1: Code Search
+
+### Use Case #2: Code Understanding
+
+### Use Case #3: Code Writing
  
 ## Supported Languages
 
@@ -88,6 +94,10 @@ you should then see
 ```commandline
 Ask a question: 
 ```
-Then ask your question and wait for the response.
+Then ask your question and wait for the response.  To exit, type 'exit'.
+
+## Recommended Config
+
+For the best quality results, 
 
 

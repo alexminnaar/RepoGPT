@@ -10,6 +10,7 @@ class QA:
         self.llm = llm
         self.retriever = deeplake_store.as_retriever()
         self.retriever.search_kwargs['distance_metric'] = 'cos'
+        self.retriever.search_kwargs["fetch_k"] = 100
         self.retriever.search_kwargs['maximal_marginal_relevance'] = False
         self.retriever.search_kwargs['k'] = num_results
 
@@ -27,6 +28,10 @@ class QA:
         similar_chunks = self.retriever.get_relevant_documents(query_str)[::-1]
         print("Relevant files:")
         for chunk in similar_chunks:
-            print(chunk.metadata['source'])
+            print(
+                f"{chunk.metadata['source']} - lines {chunk.metadata['starting_line']} - {chunk.metadata['ending_line']}")
+            print(f"{chunk.page_content}")
+            print("="*100)
+
         qa_prompt = self.create_prompt(query_str, similar_chunks)
         return self.llm(qa_prompt)

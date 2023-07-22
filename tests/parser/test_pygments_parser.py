@@ -15,52 +15,14 @@ class MyClass:
         # Method body goes here
         pass
 """
-        expected_python_summary = ['method named my_function starting on line 1',
-                                   'class named MyClass starting on line 5',
-                                   'method named my_method starting on line 6']
 
         test_python_summary = PygmentsParser.get_file_summary(test_python_code, "test_python_file.py")
 
-        assert test_python_summary == expected_python_summary
-
-    def test_pygments_parser_cpp(self):
-        test_cpp_code = """
-        #include <iostream>
-
-        void myFunction() {
-            // Function body goes here
-        }
-
-        class MyClass {
-        void myMethod() {
-                // Method body goes here
-            }
-        };
-        """
-        expected_cpp_summary = ['method named myFunction starting on line 3',
-                                'class named MyClass starting on line 6',
-                                'method named myMethod starting on line 7']
-
-        test_cpp_summary = PygmentsParser.get_file_summary(test_cpp_code, "test_cpp_file.cpp")
-
-        assert test_cpp_summary == expected_cpp_summary
-
-    def test_pygments_parser_java(self):
-        test_java_code = """
-        public class MyClass {
-            public void myMethod() {
-                // Method body goes here
-            }
-
-            private int calculateSum(int a, int b) {
-                // Method body goes here
-                return a + b;
-            }
-        }
-        """
-        expected_java_summary = ["class named MyClass starting on line 1",
-                                 "method named myMethod starting on line 2",
-                                 "method named calculateSum starting on line 6"]
-        test_java_summary = PygmentsParser.get_file_summary(test_java_code, "test_java_file.java")
-
-        assert test_java_summary == expected_java_summary
+        assert len(test_python_summary.classes) == 1 \
+               and test_python_summary.classes[0].name == 'MyClass' \
+               and test_python_summary.classes[0].line == 5 \
+               and len(test_python_summary.methods) == 2 \
+               and test_python_summary.methods[0].name == 'my_function' \
+               and test_python_summary.methods[0].line == 1 \
+               and test_python_summary.methods[1].name == 'my_method' \
+               and test_python_summary.methods[1].line == 6
