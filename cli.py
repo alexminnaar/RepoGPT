@@ -21,6 +21,8 @@ def main():
 
     # create embedding object - required for both indexing and qa
     embeddings = config_utils.read_config_embeddings(args.config_file)
+
+    # get paths to repository to crawl, vector store and num results to extract from vector store per query
     repo_path, vs_path, num_results = config_utils.read_config_dir_paths(args.config_file)
 
     # if running in init mode, just crawl and index the repo
@@ -44,8 +46,11 @@ def main():
             if query.strip() == "":
                 continue
 
-            resp = qa.get_resp(query)
-            print(resp)
+            try:
+                resp = qa.get_resp(query)
+                print(f"Response:\n{resp}")
+            except Exception as e:
+                logger.error(f"Exception occurred computing LLM Response: {e}")
 
 
 if __name__ == "__main__":

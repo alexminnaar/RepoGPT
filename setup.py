@@ -13,7 +13,7 @@ setup(
     install_requires=requirements,
     entry_points={
         'console_scripts': [
-            'repogpt-cli=repogpt.cli.cli:main'
+            'repogpt-cli=cli:main'
         ]
     },
     classifiers=[

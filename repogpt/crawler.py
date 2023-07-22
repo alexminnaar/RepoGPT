@@ -1,13 +1,12 @@
 from langchain.docstore.document import Document
 from langchain.document_loaders import TextLoader
-from langchain.text_splitter import Language
-from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain.text_splitter import Language, RecursiveCharacterTextSplitter
 from langchain.embeddings.base import Embeddings
 from langchain.vectorstores import DeepLake
-from repogpt.parsers.pygments_parser import PygmentsParser
+from repogpt.parsers.pygments_parser import PygmentsParser, FileSummary, SummaryPosition
 from multiprocessing import Pool
 from tqdm import tqdm
-from typing import List, Optional
+from typing import List, Optional, Tuple
 import os
 import fnmatch
 import logging
@@ -59,17 +58,64 @@ def is_git_dir(dir_path: str) -> bool:
     return os.path.isdir(git_dir)
 
 
-def process_file(file_contents: List[Document], dir_path: str, file_name: str, extension: str, chunk_size: int = 3000,
-                 chunk_overlap: int = 500) -> List[Document]:
+def get_summary_from_position(summary_positions: List[SummaryPosition], start_line: int,
+                              end_line: int) -> Tuple[Optional[str], List[str]]:
+    """For a given list of summary positions and start/end lines find which positions are before and inside the lines"""
+    last_obj = None
+    current_obj = []
+
+    # TODO: binary search-ify this
+    for s_pos in summary_positions:
+        # get last defined method before the snippet
+        if s_pos.line < start_line:
+            last_obj = s_pos.name
+
+        # get any method defined in this snippet
+        if start_line <= s_pos.line <= end_line:
+            current_obj.append(s_pos.name)
+
+        # ignore everything past this snippet
+        if s_pos.line > end_line:
+            break
+
+    return last_obj, current_obj
+
+
+def get_closest_method_class_in_snippet(file_summary: FileSummary, snippet_start_line: int,
+                                        snippet_end_line: int) -> str:
+    """For a given file summary and snippet start/end lines extract summary information for the snippet"""
+    closest_method_class_summary = ""
+
+    last_class, current_class = get_summary_from_position(file_summary.classes, snippet_start_line, snippet_end_line)
+
+    if last_class:
+        closest_method_class_summary += f"  The last class defined before this snippet was called {last_class}."
+    if len(current_class) == 1:
+        closest_method_class_summary += f"  The class defined in this snippet is called {current_class[0]}."
+    elif len(current_class) > 1:
+        multi_class_summary = " and ".join([f"{c}" for c in current_class])
+        closest_method_class_summary += f"  The classes defined in this snippet are {multi_class_summary}."
+
+    last_method, current_method = get_summary_from_position(file_summary.methods, snippet_start_line, snippet_end_line)
+
+    if last_method:
+        closest_method_class_summary += f"  The beginning of this snippet may contain the end of the {last_method} " \
+                                        "method."
+    if len(current_method) == 1:
+        closest_method_class_summary += f"  The method defined in this snippet is called {current_method[0]}."
+    elif len(current_method) > 1:
+        multi_method_summary = " and ".join([f"{meth}" for meth in current_method])
+        closest_method_class_summary += f"  The methods defined in this snippet are {multi_method_summary}."
+
+    return closest_method_class_summary
+
+
+def process_file(file_contents: List[Document], dir_path: str, file_name: str, extension: str, chunk_size: int = 1000,
+                 chunk_overlap: int = 0) -> List[Document]:
     """For a given file, get the summary, split into chunks and create context document chunks to be indexed"""
     file_doc = file_contents[0]
     # get file summary for raw file
-    summary = PygmentsParser.get_file_summary(file_doc.page_content, file_name)
-
-    # if no summary was found by the parser, do not include it in the final chunk
-    summary_str = ""
-    if summary:
-        summary_str = f"In this file there is a {', a '.join(summary)}."
+    file_summary = PygmentsParser.get_file_summary(file_doc.page_content, file_name)
 
     # split file contents based on file extension
     splitter = RecursiveCharacterTextSplitter.from_language(
@@ -80,10 +126,16 @@ def process_file(file_contents: List[Document], dir_path: str, file_name: str, e
     # add file path, starting line and summary to each chunk
     for doc in split_docs:
         starting_line = file_doc.page_content[:doc.metadata['start_index']].count('\n') + 1
-        doc.page_content = f"The following code snippet is from a file at location \
-{os.path.join(dir_path, file_name)} starting at line {starting_line}. {summary_str} " \
+        ending_line = starting_line + doc.page_content.count('\n')
+        doc.metadata['starting_line'] = starting_line
+        doc.metadata['ending_line'] = ending_line
+
+        method_class_summary = get_closest_method_class_in_snippet(file_summary, starting_line, ending_line)
+
+        doc.page_content = f"The following code snippet is from a file at location {os.path.join(dir_path, file_name)} " \
+                           f"starting at line {starting_line} and ending at line {ending_line}. {method_class_summary} " \
                            f"The code snippet starting at line {starting_line} is \n \
-        ```\n{doc.page_content}\n```"
+                            ```\n{doc.page_content}\n```"
 
     return split_docs
 
