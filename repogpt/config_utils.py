@@ -40,8 +40,10 @@ def read_config_dir_paths(config_file: str) -> [str, str]:
     _repo_path = get_config_option(config, "repo", "REPO_PATH")
     _vs_path = get_config_option(config, "vectorstore", "VS_PATH")
     _vs_num_results = get_config_option(config, "vectorstore", "NUM_RESULTS")
+    _chunk_size = get_config_option(config, "crawler", "CHUNK_SIZE")
+    _chunk_overlap = get_config_option(config, "crawler", "CHUNK_OVERLAP")
 
-    return _repo_path, _vs_path, int(_vs_num_results)
+    return _repo_path, _vs_path, int(_vs_num_results), int(_chunk_size), int(_chunk_overlap)
 
 
 def read_config_llm(config_file: str) -> BaseLLM:

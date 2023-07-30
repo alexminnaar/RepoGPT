@@ -3,7 +3,9 @@ from langchain.document_loaders import TextLoader
 from langchain.text_splitter import Language, RecursiveCharacterTextSplitter
 from langchain.embeddings.base import Embeddings
 from langchain.vectorstores import DeepLake
-from repogpt.parsers.pygments_parser import PygmentsParser, FileSummary, SummaryPosition
+from repogpt.parsers.pygments_parser import PygmentsParser
+from repogpt.parsers.python_parser import PythonParser
+from repogpt.parsers.base import SummaryPosition, FileSummary
 from multiprocessing import Pool
 from tqdm import tqdm
 from typing import List, Optional, Tuple
@@ -11,6 +13,7 @@ import os
 import fnmatch
 import logging
 import traceback
+from functools import partial
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("repogpt_crawler_logger")
@@ -58,64 +61,15 @@ def is_git_dir(dir_path: str) -> bool:
     return os.path.isdir(git_dir)
 
 
-def get_summary_from_position(summary_positions: List[SummaryPosition], start_line: int,
-                              end_line: int) -> Tuple[Optional[str], List[str]]:
-    """For a given list of summary positions and start/end lines find which positions are before and inside the lines"""
-    last_obj = None
-    current_obj = []
-
-    # TODO: binary search-ify this
-    for s_pos in summary_positions:
-        # get last defined method before the snippet
-        if s_pos.line < start_line:
-            last_obj = s_pos.name
-
-        # get any method defined in this snippet
-        if start_line <= s_pos.line <= end_line:
-            current_obj.append(s_pos.name)
-
-        # ignore everything past this snippet
-        if s_pos.line > end_line:
-            break
-
-    return last_obj, current_obj
-
-
-def get_closest_method_class_in_snippet(file_summary: FileSummary, snippet_start_line: int,
-                                        snippet_end_line: int) -> str:
-    """For a given file summary and snippet start/end lines extract summary information for the snippet"""
-    closest_method_class_summary = ""
-
-    last_class, current_class = get_summary_from_position(file_summary.classes, snippet_start_line, snippet_end_line)
-
-    if last_class:
-        closest_method_class_summary += f"  The last class defined before this snippet was called {last_class}."
-    if len(current_class) == 1:
-        closest_method_class_summary += f"  The class defined in this snippet is called {current_class[0]}."
-    elif len(current_class) > 1:
-        multi_class_summary = " and ".join([f"{c}" for c in current_class])
-        closest_method_class_summary += f"  The classes defined in this snippet are {multi_class_summary}."
-
-    last_method, current_method = get_summary_from_position(file_summary.methods, snippet_start_line, snippet_end_line)
-
-    if last_method:
-        closest_method_class_summary += f"  The beginning of this snippet may contain the end of the {last_method} " \
-                                        "method."
-    if len(current_method) == 1:
-        closest_method_class_summary += f"  The method defined in this snippet is called {current_method[0]}."
-    elif len(current_method) > 1:
-        multi_method_summary = " and ".join([f"{meth}" for meth in current_method])
-        closest_method_class_summary += f"  The methods defined in this snippet are {multi_method_summary}."
-
-    return closest_method_class_summary
-
-
-def process_file(file_contents: List[Document], dir_path: str, file_name: str, extension: str, chunk_size: int = 1000,
-                 chunk_overlap: int = 0) -> List[Document]:
+def process_file(file_contents: List[Document], dir_path: str, file_name: str, extension: str, chunk_size: int,
+                 chunk_overlap: int) -> List[Document]:
     """For a given file, get the summary, split into chunks and create context document chunks to be indexed"""
     file_doc = file_contents[0]
     # get file summary for raw file
-    file_summary = PygmentsParser.get_file_summary(file_doc.page_content, file_name)
+    if extension == '.py':
+        file_summary = PythonParser.get_file_summary(file_doc.page_content, file_name)
+    else:
+        file_summary = PygmentsParser.get_file_summary(file_doc.page_content, file_name)
 
     # split file contents based on file extension
     splitter = RecursiveCharacterTextSplitter.from_language(
@@ -130,13 +84,15 @@ def process_file(file_contents: List[Document], dir_path: str, file_name: str, e
         doc.metadata['starting_line'] = starting_line
         doc.metadata['ending_line'] = ending_line
 
-        method_class_summary = get_closest_method_class_in_snippet(file_summary, starting_line, ending_line)
-
+        if extension == '.py':
+            method_class_summary = PythonParser.get_closest_method_class_in_snippet(file_summary, starting_line,
+                                                                                    ending_line)
+        else:
+            method_class_summary = PygmentsParser.get_closest_method_class_in_snippet(file_summary, starting_line,
+                                                                                      ending_line)
         doc.page_content = f"The following code snippet is from a file at location {os.path.join(dir_path, file_name)} " \
                            f"starting at line {starting_line} and ending at line {ending_line}. {method_class_summary} " \
-                           f"The code snippet starting at line {starting_line} is \n \
-                            ```\n{doc.page_content}\n```"
-
+                           f"The code snippet starting at line {starting_line} and ending at line {ending_line} is \n ```\n{doc.page_content}\n``` "
     return split_docs
 
 
@@ -157,11 +113,12 @@ def filter_files(root_dir: str) -> List[FileProperties]:
     return files_to_crawl
 
 
-def process_and_split(file: FileProperties) -> Optional[List[Document]]:
+def process_and_split(file: FileProperties, chunk_size: int, chunk_overlap: int) -> Optional[List[Document]]:
     """For a given file, load it into memory and process it"""
+
     try:
         loader = TextLoader(os.path.join(file.dir_path, file.file_name), encoding='utf-8')
-        chunks = process_file(loader.load(), file.dir_path, file.file_name, file.extension)
+        chunks = process_file(loader.load(), file.dir_path, file.file_name, file.extension, chunk_size, chunk_overlap)
     except Exception as e:
         logger.error(f"Error processing file {os.path.join(file.dir_path, file.file_name)}. Skipping file. {e}")
         traceback.print_exc()
@@ -169,14 +126,16 @@ def process_and_split(file: FileProperties) -> Optional[List[Document]]:
     return chunks
 
 
-def crawl_and_split(root_dir: str) -> List[Document]:
+def crawl_and_split(root_dir: str, chunk_size: int = 3000, chunk_overlap: int = 0) -> List[Document]:
     """Crawl git directory and process files"""
     filtered_files = filter_files(root_dir)
+
+    process_and_split_partial_function = partial(process_and_split, chunk_size=chunk_size, chunk_overlap=chunk_overlap)
 
     with Pool(processes=os.cpu_count()) as pool:
         split_docs = []
         with tqdm(total=len(filtered_files), desc='Chunking documents...', ncols=80) as pbar:
-            for i, docs in enumerate(pool.imap_unordered(process_and_split, filtered_files)):
+            for i, docs in enumerate(pool.imap_unordered(process_and_split_partial_function, filtered_files)):
                 if docs:
                     split_docs.extend(docs)
                 pbar.update()
@@ -185,4 +144,5 @@ def crawl_and_split(root_dir: str) -> List[Document]:
 
 
 def index(docs: List[Document], embedding_type: Embeddings, vs_path: str):
-    return DeepLake.from_documents(docs, embedding_type, dataset_path=vs_path)
+    return None
+    # return DeepLake.from_documents(docs, embedding_type, dataset_path=vs_path)

@@ -23,12 +23,12 @@ def main():
     embeddings = config_utils.read_config_embeddings(args.config_file)
 
     # get paths to repository to crawl, vector store and num results to extract from vector store per query
-    repo_path, vs_path, num_results = config_utils.read_config_dir_paths(args.config_file)
+    repo_path, vs_path, num_results, chunk_size, chunk_overlap = config_utils.read_config_dir_paths(args.config_file)
 
     # if running in init mode, just crawl and index the repo
     if args.init:
         logger.info("Crawling repo...")
-        repo_docs = crawl_and_split(repo_path)
+        repo_docs = crawl_and_split(repo_path, chunk_size, chunk_overlap)
         index(repo_docs, embeddings, vs_path)
         logging.info(f"chunks successfully indexed to vector store located at {repo_path}")
 
