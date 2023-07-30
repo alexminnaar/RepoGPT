@@ -20,9 +20,9 @@ class MyClass:
 
         assert len(test_python_summary.classes) == 1 \
                and test_python_summary.classes[0].name == 'MyClass' \
-               and test_python_summary.classes[0].line == 5 \
+               and test_python_summary.classes[0].start_line == 5 \
                and len(test_python_summary.methods) == 2 \
                and test_python_summary.methods[0].name == 'my_function' \
-               and test_python_summary.methods[0].line == 1 \
+               and test_python_summary.methods[0].start_line == 1 \
                and test_python_summary.methods[1].name == 'my_method' \
-               and test_python_summary.methods[1].line == 6
+               and test_python_summary.methods[1].start_line == 6
