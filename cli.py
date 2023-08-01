@@ -4,9 +4,12 @@ from repogpt.qa.qa import QA
 from repogpt import config_utils
 import argparse
 import logging
+from colorama import Fore, Back, Style, init
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("repogpt_cli_logger")
+
+init(autoreset=True)
 
 
 def parse_arguments():
@@ -48,7 +51,7 @@ def main():
 
             try:
                 resp = qa.get_resp(query)
-                print(f"Response:\n{resp}")
+                print(Fore.GREEN + f"Response:\n{resp}")
             except Exception as e:
                 logger.error(f"Exception occurred computing LLM Response: {e}")
 

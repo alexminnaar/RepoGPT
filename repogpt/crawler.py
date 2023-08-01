@@ -5,14 +5,12 @@ from langchain.embeddings.base import Embeddings
 from langchain.vectorstores import DeepLake
 from repogpt.parsers.pygments_parser import PygmentsParser
 from repogpt.parsers.python_parser import PythonParser
-from repogpt.parsers.base import SummaryPosition, FileSummary
 from multiprocessing import Pool
 from tqdm import tqdm
-from typing import List, Optional, Tuple
+from typing import List, Optional
 import os
 import fnmatch
 import logging
-import traceback
 from functools import partial
 
 logging.basicConfig(level=logging.INFO)
@@ -61,8 +59,14 @@ def is_git_dir(dir_path: str) -> bool:
     return os.path.isdir(git_dir)
 
 
-def process_file(file_contents: List[Document], dir_path: str, file_name: str, extension: str, chunk_size: int,
-                 chunk_overlap: int) -> List[Document]:
+def process_file(
+        file_contents: List[Document],
+        dir_path: str,
+        file_name: str,
+        extension: str,
+        chunk_size: int,
+        chunk_overlap: int
+) -> List[Document]:
     """For a given file, get the summary, split into chunks and create context document chunks to be indexed"""
     file_doc = file_contents[0]
     # get file summary for raw file
@@ -84,15 +88,19 @@ def process_file(file_contents: List[Document], dir_path: str, file_name: str, e
         doc.metadata['starting_line'] = starting_line
         doc.metadata['ending_line'] = ending_line
 
+        # get methods and classes associated with chunk
         if extension == '.py':
             method_class_summary = PythonParser.get_closest_method_class_in_snippet(file_summary, starting_line,
                                                                                     ending_line)
         else:
             method_class_summary = PygmentsParser.get_closest_method_class_in_snippet(file_summary, starting_line,
                                                                                       ending_line)
-        doc.page_content = f"The following code snippet is from a file at location {os.path.join(dir_path, file_name)} " \
-                           f"starting at line {starting_line} and ending at line {ending_line}. {method_class_summary} " \
-                           f"The code snippet starting at line {starting_line} and ending at line {ending_line} is \n ```\n{doc.page_content}\n``` "
+        doc.page_content = f"The following code snippet is from a file at location " \
+                           f"{os.path.join(dir_path, file_name)} " \
+                           f"starting at line {starting_line} and ending at line {ending_line}. " \
+                           f"{method_class_summary} " \
+                           f"The code snippet starting at line {starting_line} and ending at line " \
+                           f"{ending_line} is \n ```\n{doc.page_content}\n``` "
     return split_docs
 
 
@@ -109,19 +117,17 @@ def filter_files(root_dir: str) -> List[FileProperties]:
             if extension in LANG_MAPPING and not contains_hidden_dir(dir_path):
                 files_to_crawl.append(FileProperties(dir_path, file, extension))
             else:
-                logger.info(f"Skipping {os.path.join(dir_path, file)} - File/directory type not supported.")
+                logger.info(f"Skipping {os.path.join(dir_path, file)} - File or directory type not supported.")
     return files_to_crawl
 
 
 def process_and_split(file: FileProperties, chunk_size: int, chunk_overlap: int) -> Optional[List[Document]]:
     """For a given file, load it into memory and process it"""
-
     try:
         loader = TextLoader(os.path.join(file.dir_path, file.file_name), encoding='utf-8')
         chunks = process_file(loader.load(), file.dir_path, file.file_name, file.extension, chunk_size, chunk_overlap)
     except Exception as e:
         logger.error(f"Error processing file {os.path.join(file.dir_path, file.file_name)}. Skipping file. {e}")
-        traceback.print_exc()
         return None
     return chunks
 
@@ -144,5 +150,4 @@ def crawl_and_split(root_dir: str, chunk_size: int = 3000, chunk_overlap: int = 
 
 
 def index(docs: List[Document], embedding_type: Embeddings, vs_path: str):
-    return None
-    # return DeepLake.from_documents(docs, embedding_type, dataset_path=vs_path)
+    return DeepLake.from_documents(docs, embedding_type, dataset_path=vs_path)
