@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from typing import List, Tuple
 
 
 class SummaryPosition:
@@ -21,6 +22,17 @@ class FileSummary:
 
 
 class CodeParser(ABC):
+    @staticmethod
+    @abstractmethod
+    def get_summary_from_position(summary_positions: List[SummaryPosition], start_line: int,
+                                  end_line: int) -> Tuple[List[SummaryPosition], List[SummaryPosition]]:
+        """Helper function to get object positions within snippet"""
+
+    @staticmethod
+    @abstractmethod
+    def get_closest_method_class_in_snippet(file_summary: FileSummary, snippet_start_line: int,
+                                            snippet_end_line: int) -> str:
+        """Get the relevent methods and classes in a snippet and convert to prompt"""
 
     @staticmethod
     @abstractmethod

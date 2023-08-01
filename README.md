@@ -26,11 +26,31 @@ RepoGPT adds additional context to the chunk including
 
 ## Demo
 
+In this demo, the [Pandas](https://github.com/pandas-dev/pandas/tree/main) python library repo has been crawled and 
+we will ask RepoGPT some questions about it.  This demo's config.ini file specifies `sentence-transformers/all-mpnet-base-v2` 
+huggingface embeddings and OpenAI's `gpt-4` model.
 ### Use Case #1: Code Search
+
+With RepoGPT you can search for a piece of code.  For example, let's ask RepoGPT to "show the `value_counts` method in
+the `ArrowExtensionArray` class".
+
+![demo1](https://github.com/alexminnaar/RepoGPT/blob/main/demos/repogpt_demo1.png "demo1")
 
 ### Use Case #2: Code Understanding
 
+RepoGPT can also explain pieces of code.  For example, let's ask RepoGPT to "explain the `value_counts` method in
+the `ArrowExtensionArray` class".
+
+![demo2](https://github.com/alexminnaar/RepoGPT/blob/main/demos/repogpt_demo2.png "demo2")
+
+
 ### Use Case #3: Code Writing
+
+RepoGPT can also write new code based on the repo.  For example let's ask RepoGPT to "write unit tests for the 
+`value_counts` method in the `ArrowExtensionArray` class".
+
+![demo3](https://github.com/alexminnaar/RepoGPT/blob/main/demos/repogpt_demo3.png "demo3")
+
  
 ## Supported Languages
 
@@ -95,9 +115,5 @@ you should then see
 Ask a question: 
 ```
 Then ask your question and wait for the response.  To exit, type 'exit'.
-
-## Recommended Config
-
-For the best quality results, 
 
 

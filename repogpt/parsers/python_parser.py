@@ -5,8 +5,11 @@ from typing import List, Tuple
 
 class PythonParser(CodeParser):
     @staticmethod
-    def get_summary_from_position(summary_positions: List[SummaryPosition], start_line: int,
-                                  end_line: int) -> Tuple[List[SummaryPosition], List[SummaryPosition]]:
+    def get_summary_from_position(
+            summary_positions: List[SummaryPosition],
+            start_line: int,
+            end_line: int
+    ) -> Tuple[List[SummaryPosition], List[SummaryPosition]]:
 
         last_obj = []
         current_obj = []
@@ -27,19 +30,24 @@ class PythonParser(CodeParser):
         return last_obj, current_obj
 
     @staticmethod
-    def get_closest_method_class_in_snippet(file_summary: FileSummary, snippet_start_line: int,
-                                            snippet_end_line: int) -> str:
+    def get_closest_method_class_in_snippet(
+            file_summary: FileSummary,
+            snippet_start_line: int,
+            snippet_end_line: int
+    ) -> str:
         closest_method_class_summary = ""
 
         last_class, current_class = PythonParser.get_summary_from_position(file_summary.classes, snippet_start_line,
                                                                            snippet_end_line)
 
         if last_class:
-            closest_method_class_summary += f"  The last class defined before this snippet was called `{last_class[-1].name}` " \
-                                            f"starting at line {last_class[-1].start_line} and ending at line {last_class[-1].end_line}."
+            closest_method_class_summary += f"  The last class defined before this snippet was called " \
+                                            f"`{last_class[-1].name}` starting at line {last_class[-1].start_line} " \
+                                            f"and ending at line {last_class[-1].end_line}."
         if len(current_class) == 1:
             closest_method_class_summary += f"  The class defined in this snippet is called `{current_class[0].name}`" \
-                                            f"starting at line {current_class[0].start_line} and ending at line {current_class[0].end_line}."
+                                            f"starting at line {current_class[0].start_line} and ending at line " \
+                                            f"{current_class[0].end_line}."
         elif len(current_class) > 1:
             multi_class_summary = " and ".join(
                 [f"`{c.name}` starting at line {c.start_line} and ending at line {c.end_line}" for c in current_class])
@@ -49,12 +57,13 @@ class PythonParser(CodeParser):
                                                                              snippet_end_line)
 
         if last_method:
-            closest_method_class_summary += f"  The last method starting before this snippet is called `{last_method[-1].name}` " \
-                                            f"which starts on line {last_method[-1].start_line} and ends at " \
-                                            f"line {last_method[-1].end_line}."
+            closest_method_class_summary += f"  The last method starting before this snippet is called " \
+                                            f"`{last_method[-1].name}` which starts on line " \
+                                            f"{last_method[-1].start_line} and ends at line {last_method[-1].end_line}."
         if len(current_method) == 1:
-            closest_method_class_summary += f"  The method defined in this snippet is called `{current_method[0].name}` " \
-                                            f"starting at line {current_method[0].start_line} and ending at line " \
+            closest_method_class_summary += f"  The method defined in this snippet is called " \
+                                            f"`{current_method[0].name}` starting at line " \
+                                            f"{current_method[0].start_line} and ending at line " \
                                             f"{current_method[0].end_line}."
         elif len(current_method) > 1:
             multi_method_summary = " and ".join(
