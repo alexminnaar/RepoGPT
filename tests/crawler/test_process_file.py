@@ -22,7 +22,7 @@ hello_world()
                                                'line 2 and ending at line 3. The code snippet starting at line 2 and '
                                                'ending at line 6 is \n ```\ndef hello_world():\n    '
                                                'print("Hello, World!")\n\n# Call the function\nhello_world()\n``` ',
-                                  metadata={'start_index': 1, 'starting_line': 2, 'ending_line': 6}),]
+                                  metadata={'start_index': 1}),]
         assert expected_docs == docs
 
     def test_contains_hidden_dir_is_hidden(self):
