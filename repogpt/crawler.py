@@ -3,9 +3,8 @@ from langchain.document_loaders import TextLoader
 from langchain.text_splitter import Language, RecursiveCharacterTextSplitter
 from langchain.embeddings.base import Embeddings
 from langchain.vectorstores import DeepLake
-from repogpt.parsers.pygments_parser import PygmentsParser
 from repogpt.parsers.python_parser import PythonParser
-from multiprocessing import Pool
+from repogpt.parsers.treesitter_parser import TreeSitterParser
 from tqdm import tqdm
 from typing import List, Optional
 import os
@@ -73,7 +72,7 @@ def process_file(
     if extension == '.py':
         file_summary = PythonParser.get_file_summary(file_doc.page_content, file_name)
     else:
-        file_summary = PygmentsParser.get_file_summary(file_doc.page_content, file_name)
+        file_summary = TreeSitterParser.get_file_summary(file_doc.page_content, file_name)
 
     # split file contents based on file extension
     splitter = RecursiveCharacterTextSplitter.from_language(
@@ -85,22 +84,21 @@ def process_file(
     for doc in split_docs:
         starting_line = file_doc.page_content[:doc.metadata['start_index']].count('\n') + 1
         ending_line = starting_line + doc.page_content.count('\n')
-        doc.metadata['starting_line'] = starting_line
-        doc.metadata['ending_line'] = ending_line
 
         # get methods and classes associated with chunk
         if extension == '.py':
             method_class_summary = PythonParser.get_closest_method_class_in_snippet(file_summary, starting_line,
                                                                                     ending_line)
         else:
-            method_class_summary = PygmentsParser.get_closest_method_class_in_snippet(file_summary, starting_line,
-                                                                                      ending_line)
+            method_class_summary = TreeSitterParser.get_closest_method_class_in_snippet(file_summary, starting_line,
+                                                                                        ending_line)
         doc.page_content = f"The following code snippet is from a file at location " \
                            f"{os.path.join(dir_path, file_name)} " \
                            f"starting at line {starting_line} and ending at line {ending_line}. " \
                            f"{method_class_summary} " \
                            f"The code snippet starting at line {starting_line} and ending at line " \
                            f"{ending_line} is \n ```\n{doc.page_content}\n``` "
+
     return split_docs
 
 
@@ -138,13 +136,13 @@ def crawl_and_split(root_dir: str, chunk_size: int = 3000, chunk_overlap: int = 
 
     process_and_split_partial_function = partial(process_and_split, chunk_size=chunk_size, chunk_overlap=chunk_overlap)
 
-    with Pool(processes=os.cpu_count()) as pool:
-        split_docs = []
-        with tqdm(total=len(filtered_files), desc='Chunking documents...', ncols=80) as pbar:
-            for i, docs in enumerate(pool.imap_unordered(process_and_split_partial_function, filtered_files)):
-                if docs:
-                    split_docs.extend(docs)
-                pbar.update()
+    split_docs = []
+    with tqdm(total=len(filtered_files), desc='Chunking documents...', ncols=80) as pbar:
+        for ff in filtered_files:
+            docs = process_and_split_partial_function(ff)
+            if docs:
+                split_docs.extend(docs)
+            pbar.update()
 
     return split_docs
 

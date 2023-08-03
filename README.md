@@ -24,6 +24,38 @@ RepoGPT adds additional context to the chunk including
 * A summary of the classes and methods contained in the file.
 * The line number where the chunk appears in the file.  
 
+## Usage
+
+### 1. Create a config.ini File
+The `config.ini` file sets the parameters that RepoGPT needs to run.  They are
+
+* `REPO_PATH`: The path to the root directory of the git repo.
+* `VS_PATH`: The path where the vector store will be created.
+* `NUM_RESULTS`: The number of search results returned by the vector store for a given query.
+* `EMBEDDING_TYPE`: The name of the embedding being used.
+* `MODEL_NAME`: The name of the LLM to use.
+
+Example `config.ini` files can be found in the `example_config_files` directory in this repo.
+
+
+### 2. Initialize Repo
+This step crawls and indexes the repo specified in `example_config.ini`.
+```commandline
+python cli.py --init example_config.ini
+```
+
+### 3. Ask Questions
+Run the command
+```commandline
+python cli.py example_config.ini 
+```
+you should then see
+
+```commandline
+Ask a question: 
+```
+Then ask your question and wait for the response.  To exit, type 'exit'.
+
 ## Demo
 
 In this demo, the [Pandas](https://github.com/pandas-dev/pandas/tree/main) python library repo has been crawled and 
@@ -84,36 +116,6 @@ The following languages/file types can be crawled with RepoGPT
 
 ⚠️ Warning: Crawling a large repo while using OpenAI embeddings could result in many thousands of embedding requests ⚠️
 
-## Usage
 
-### 1. Create a config.ini File
-The `config.ini` file sets the parameters that RepoGPT needs to run.  They are
-
-* `REPO_PATH`: The path to the root directory of the git repo.
-* `VS_PATH`: The path where the vector store will be created.
-* `NUM_RESULTS`: The number of search results returned by the vector store for a given query.
-* `EMBEDDING_TYPE`: The name of the embedding being used.
-* `MODEL_NAME`: The name of the LLM to use.
-
-Example `config.ini` files can be found in the `example_config_files` directory in this repo.
-
-
-### 2. Initialize Repo
-This step crawls and indexes the repo specified in `example_config.ini`.
-```commandline
-python cli.py --init example_config.ini
-```
-
-### 3. Ask Questions
-Run the command
-```commandline
-python cli.py example_config.ini 
-```
-you should then see
-
-```commandline
-Ask a question: 
-```
-Then ask your question and wait for the response.  To exit, type 'exit'.
 
 

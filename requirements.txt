@@ -5,3 +5,4 @@ deeplake
 gpt4all
 llama-cpp-python
 colorama
+tree_sitter

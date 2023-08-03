@@ -34,7 +34,6 @@ class QA:
         for chunk in similar_chunks:
             print(Fore.RED +
                   f"{chunk.metadata['source']} - lines {chunk.metadata['starting_line']} - {chunk.metadata['ending_line']}")
-
         qa_prompt = self.create_prompt(query_str, similar_chunks)
         print("Computing response...")
         return self.llm(qa_prompt)
