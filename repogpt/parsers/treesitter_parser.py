@@ -5,7 +5,6 @@ import os
 
 
 class TreeSitterParser(CodeParser):
-
     languages = {}
     loaded = False
 
@@ -19,7 +18,8 @@ class TreeSitterParser(CodeParser):
         for language in LANGUAGE_NAMES:
             Language.build_library(f'cache/build/{language}.so', [f"cache/tree-sitter-{language}"])
             subprocess.run(f"cp cache/build/{language}.so /tmp/{language}.so", shell=True)
-        TreeSitterParser.languages = {language: Language(f"/tmp/{language}.so", language) for language in LANGUAGE_NAMES}
+        TreeSitterParser.languages = {language: Language(f"/tmp/{language}.so", language) for language in
+                                      LANGUAGE_NAMES}
         TreeSitterParser.loaded = True
 
     @staticmethod
@@ -59,10 +59,29 @@ class TreeSitterParser(CodeParser):
                     function_name = code[function_name_node.start_byte: function_name_node.end_byte]
                     file_summary.methods.append(SummaryPosition(function_name, node.start_point[0], node.end_point[0]))
 
+                if node.type == 'constructor_declaration':
+                    function_name_node = node.children[1]
+                    function_name = code[function_name_node.start_byte: function_name_node.end_byte]
+                    file_summary.methods.append(SummaryPosition(function_name, node.start_point[0], node.end_point[0]))
+
+                if node.type == 'method_declaration':
+                    for child in node.children:
+                        if child.type == 'identifier':
+                            function_name = code[child.start_byte: child.end_byte]
+                            file_summary.methods.append(
+                                SummaryPosition(function_name, node.start_point[0], node.end_point[0]))
+
                 if node.type == 'class_specifier':
                     class_name_node = node.children[1]
                     class_name = code[class_name_node.start_byte: class_name_node.end_byte]
                     file_summary.classes.append(SummaryPosition(class_name, node.start_point[0], node.end_point[0]))
+
+                if node.type == 'class_declaration':
+                    for child in node.children:
+                        if child.type == 'identifier':
+                            class_name = code[child.start_byte: child.end_byte]
+                            file_summary.classes.append(
+                                SummaryPosition(class_name, node.start_point[0], node.end_point[0]))
 
                 for child in node.children:
                     traverse(child, current_line)
