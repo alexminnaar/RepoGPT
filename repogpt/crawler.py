@@ -84,6 +84,8 @@ def process_file(
     for doc in split_docs:
         starting_line = file_doc.page_content[:doc.metadata['start_index']].count('\n') + 1
         ending_line = starting_line + doc.page_content.count('\n')
+        doc.metadata['starting_line'] = starting_line
+        doc.metadata['ending_line'] = ending_line
 
         # get methods and classes associated with chunk
         if extension == '.py':
