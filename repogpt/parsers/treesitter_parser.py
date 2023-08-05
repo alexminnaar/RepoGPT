@@ -10,6 +10,8 @@ class TreeSitterParser(CodeParser):
 
     @staticmethod
     def initialize_treesitter():
+        # download tree-sitter shared objects according to
+        # https://github.com/sweepai/sweep/blob/b267b613d4c706eaf959fe6789f11e9a856521d1/sweepai/utils/utils.py#L169
         LANGUAGE_NAMES = ["python", "java", "cpp", "go", "rust", "ruby", "php"]
         for language in LANGUAGE_NAMES:
             subprocess.run(
@@ -20,6 +22,17 @@ class TreeSitterParser(CodeParser):
             subprocess.run(f"cp cache/build/{language}.so /tmp/{language}.so", shell=True)
         TreeSitterParser.languages = {language: Language(f"/tmp/{language}.so", language) for language in
                                       LANGUAGE_NAMES}
+        subprocess.run(f"git clone https://github.com/tree-sitter/tree-sitter-c-sharp cache/tree-sitter-c-sharp",
+                       shell=True)
+        Language.build_library(f'cache/build/c-sharp.so', [f"cache/tree-sitter-c-sharp"])
+        subprocess.run(f"cp cache/build/c-sharp.so /tmp/c-sharp.so", shell=True)
+        TreeSitterParser.languages["c-sharp"] = Language("/tmp/c-sharp.so", "c_sharp")
+
+        subprocess.run(f"git clone https://github.com/tree-sitter/tree-sitter-typescript cache/tree-sitter-typescript",
+                       shell=True)
+        Language.build_library(f'cache/build/typescript.so', [f"cache/tree-sitter-typescript/tsx"])
+        subprocess.run(f"cp cache/build/typescript.so /tmp/typescript.so", shell=True)
+        TreeSitterParser.languages["tsx"] = Language("/tmp/typescript.so", "tsx")
         TreeSitterParser.loaded = True
 
     @staticmethod
@@ -42,6 +55,13 @@ class TreeSitterParser(CodeParser):
             ".hpp": "cpp",
             ".rb": "ruby",
             ".php": "php",
+            ".js": "tsx",
+            ".jsx": "tsx",
+            ".ts": "tsx",
+            ".tsx": "tsx",
+            ".mjs": "tsx",
+            ".cs": "c-sharp",
+
         }
 
         file_summary = FileSummary()
@@ -54,10 +74,18 @@ class TreeSitterParser(CodeParser):
             tree = parser.parse(bytes(code, "utf-8"))
 
             def traverse(node, current_line):
+
                 if node.type == 'function_definition':
                     function_name_node = node.children[1]
                     function_name = code[function_name_node.start_byte: function_name_node.end_byte]
                     file_summary.methods.append(SummaryPosition(function_name, node.start_point[0], node.end_point[0]))
+
+                if node.type == 'function_declaration':
+                    for child in node.children:
+                        if child.type == 'identifier':
+                            function_name = code[child.start_byte: child.end_byte]
+                            file_summary.methods.append(
+                                SummaryPosition(function_name, node.start_point[0], node.end_point[0]))
 
                 if node.type == 'constructor_declaration':
                     function_name_node = node.children[1]

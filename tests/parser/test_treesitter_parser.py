@@ -64,3 +64,24 @@ public class IntegerSequenceTest {
         assert expected_methods[0].name == fs.methods[0].name \
                and expected_methods[0].start_line == fs.methods[0].start_line \
                and expected_methods[0].end_line == fs.methods[0].end_line
+
+    def test_treesitter_parser_js(self):
+        js_code = """
+export default function enqueueTask(task: () => void): void {
+  const channel = new MessageChannel();
+  channel.port1.onmessage = () => {
+    channel.port1.close();
+    task();
+  };
+  channel.port2.postMessage(undefined);
+}
+        """
+
+        tsp = TreeSitterParser()
+        fs = tsp.get_file_summary(js_code, "test.js")
+
+        expected_methods = [SummaryPosition("enqueueTask", 1, 8)]
+
+        assert expected_methods[0].name == fs.methods[0].name \
+               and expected_methods[0].start_line == fs.methods[0].start_line \
+               and expected_methods[0].end_line == fs.methods[0].end_line
