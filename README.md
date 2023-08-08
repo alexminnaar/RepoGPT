@@ -66,14 +66,14 @@ huggingface embeddings and OpenAI's `gpt-4` model.
 With RepoGPT you can search for a piece of code.  For example, let's ask RepoGPT to "show the `value_counts` method in
 the `ArrowExtensionArray` class".
 
-![demo1](https://github.com/alexminnaar/RepoGPT/blob/main/demos/repogpt_demo1.png "demo1")
+![demo1](https://github.com/alexminnaar/RepoGPT/blob/main/assets/repogpt_demo1.png "demo1")
 
 ### Use Case #2: Code Understanding
 
 RepoGPT can also explain pieces of code.  For example, let's ask RepoGPT to "explain the `value_counts` method in
 the `ArrowExtensionArray` class".
 
-![demo2](https://github.com/alexminnaar/RepoGPT/blob/main/demos/repogpt_demo2.png "demo2")
+![demo2](https://github.com/alexminnaar/RepoGPT/blob/main/assets/repogpt_demo2.png "demo2")
 
 
 ### Use Case #3: Code Writing
@@ -81,7 +81,7 @@ the `ArrowExtensionArray` class".
 RepoGPT can also write new code based on the repo.  For example let's ask RepoGPT to "write unit tests for the 
 `value_counts` method in the `ArrowExtensionArray` class".
 
-![demo3](https://github.com/alexminnaar/RepoGPT/blob/main/demos/repogpt_demo3.png "demo3")
+![demo3](https://github.com/alexminnaar/RepoGPT/blob/main/assets/repogpt_demo3.png "demo3")
 
  
 ## Supported Languages
