@@ -71,6 +71,8 @@ The `config.ini` file sets the parameters that RepoGPT needs to run.  They are
 * `NUM_RESULTS`: The number of search results returned by the vector store for a given query.
 * `EMBEDDING_TYPE`: The name of the embedding being used.
 * `MODEL_NAME`: The name of the LLM to use.
+* `CHUNK_SIZE`: The size (in tokens) of the chunks the files are split into.
+* `CHUNK_OVERLAP`: The size (in tokens) of the overlap in subsequent chunks.
 
 Example `config.ini` files can be found in the `example_config_files` directory in this repo.
 
