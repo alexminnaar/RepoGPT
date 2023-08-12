@@ -24,6 +24,43 @@ RepoGPT adds additional context to the chunk including
 * A summary of the classes and methods contained in the file.
 * The line number where the chunk appears in the file.  
 
+For example, a RepoGPT chunk may look like
+
+```
+The following code snippet is from a file at location /langchain/langchain/embeddings/aleph_alpha.py 
+starting at line 74 and ending at line 98.   The last class defined before this snippet was called 
+`AlephAlphaAsymmetricSemanticEmbedding` starting at line 9 and ending at line 142.  The last method starting before this 
+snippet is called `embed_documents` which starts on line 68 and ends at line 107. The code snippet starting at line 
+74 and ending at line 98 is 
+'''
+        Returns:
+            List of embeddings, one for each text.
+        """
+        try:
+            from aleph_alpha_client import (
+                Prompt,
+                SemanticEmbeddingRequest,
+                SemanticRepresentation,
+            )
+        except ImportError:
+            raise ValueError(
+                "Could not import aleph_alpha_client python package. "
+                "Please install it with `pip install aleph_alpha_client`."
+            )
+        document_embeddings = []
+
+        for text in texts:
+            document_params = {
+                "prompt": Prompt.from_text(text),
+                "representation": SemanticRepresentation.Document,
+                "compress_to_size": self.compress_to_size,
+                "normalize": self.normalize,
+                "contextual_control_threshold": self.contextual_control_threshold,
+                "control_log_additive": self.control_log_additive,
+            }
+'''           
+```
+
 ## Usage
 
 ### 1. Create a config.ini File
