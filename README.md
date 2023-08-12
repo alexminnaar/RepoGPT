@@ -74,7 +74,7 @@ The `config.ini` file sets the parameters that RepoGPT needs to run.  They are
 * `CHUNK_SIZE`: The size (in tokens) of the chunks the files are split into.
 * `CHUNK_OVERLAP`: The size (in tokens) of the overlap in subsequent chunks.
 
-Example `config.ini` files can be found in the `example_config_files` directory in this repo.
+Example `config.ini` files can be found in the [example_config_files](https://github.com/alexminnaar/RepoGPT/tree/main/example_config_files) directory in this repo.
 
 
 ### 2. Initialize Repo
