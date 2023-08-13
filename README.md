@@ -60,6 +60,7 @@ snippet is called `embed_documents` which starts on line 68 and ends at line 107
             }
 '''           
 ```
+more info about contextual chunking can be found in [this blog post](https://alexminnaar.com/2023/08/07/RepoGPT-Improved-Question-Answering-Over-Repositories.html).
 
 ## Usage
 
@@ -75,6 +76,7 @@ The `config.ini` file sets the parameters that RepoGPT needs to run.  They are
 * `CHUNK_OVERLAP`: The size (in tokens) of the overlap in subsequent chunks.
 
 Example `config.ini` files can be found in the [example_config_files](https://github.com/alexminnaar/RepoGPT/tree/main/example_config_files) directory in this repo.
+The [openai_config.ini](https://github.com/alexminnaar/RepoGPT/blob/main/example_config_files/openai_config.ini) config file has been shown to perform the best (remember to replace the `REPO_PATH` and `VS_PATH` with the correct values).
 
 
 ### 2. Initialize Repo
