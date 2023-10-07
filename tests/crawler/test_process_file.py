@@ -14,7 +14,8 @@ def hello_world():
 hello_world()
         """
 
-        docs = process_file([Document(page_content=PYTHON_CODE)], "/my/file/path/", "hello.py", ".py", 100, 0)
+        docs = process_file([Document(page_content=PYTHON_CODE)], "/my/file/path/", "hello.py",
+                            ".py", 100, 0)
 
         expected_docs = [Document(page_content='The following code snippet is from a file at location '
                                                '/my/file/path/hello.py starting at line 2 and ending at line 6.   '

@@ -4,7 +4,12 @@ from langchain.text_splitter import Language, RecursiveCharacterTextSplitter
 from langchain.embeddings.base import Embeddings
 from langchain.vectorstores import DeepLake
 from repogpt.parsers.python_parser import PythonParser
-from repogpt.parsers.treesitter_parser import TreeSitterParser
+from repogpt.parsers.treesitter import TreeSitterParser
+from repogpt.parsers.cpp_treesitter_parser import CppTreeSitterParser
+from repogpt.parsers.java_treesitter_parser import JavaTreeSitterParser
+from repogpt.parsers.js_treesitter_parser import JsTreeSitterParser
+from repogpt.parsers.go_treesitter_parser import GoTreeSitterParser
+from repogpt.parsers.treesitter import FileSummary
 from tqdm import tqdm
 from typing import List, Optional
 import os
@@ -68,16 +73,28 @@ def process_file(
 ) -> List[Document]:
     """For a given file, get the summary, split into chunks and create context document chunks to be indexed"""
     file_doc = file_contents[0]
+
     # get file summary for raw file
+    # TODO: Add parsers for more languages
     if extension == '.py':
         file_summary = PythonParser.get_file_summary(file_doc.page_content, file_name)
+    elif extension == '.cpp':
+        file_summary = CppTreeSitterParser.get_file_summary(file_doc.page_content, file_name)
+    elif extension == '.java':
+        file_summary = JavaTreeSitterParser.get_file_summary(file_doc.page_content, file_name)
+    elif extension == '.js':
+        file_summary = JsTreeSitterParser.get_file_summary(file_doc.page_content, file_name)
+    elif extension == '.go':
+        file_summary = GoTreeSitterParser.get_file_summary(file_doc.page_content, file_name)
     else:
-        file_summary = TreeSitterParser.get_file_summary(file_doc.page_content, file_name)
+        file_summary = FileSummary()
 
     # split file contents based on file extension
     splitter = RecursiveCharacterTextSplitter.from_language(
-        language=LANG_MAPPING[extension], chunk_size=chunk_size, chunk_overlap=chunk_overlap, add_start_index=True
-    )
+        language=LANG_MAPPING[extension],
+        chunk_size=chunk_size,
+        chunk_overlap=chunk_overlap,
+        add_start_index=True)
     split_docs = splitter.split_documents(file_contents)
 
     # add file path, starting line and summary to each chunk
@@ -88,12 +105,9 @@ def process_file(
         doc.metadata['ending_line'] = ending_line
 
         # get methods and classes associated with chunk
-        if extension == '.py':
-            method_class_summary = PythonParser.get_closest_method_class_in_snippet(file_summary, starting_line,
+        method_class_summary = TreeSitterParser.get_closest_method_class_in_snippet(file_summary,
+                                                                                    starting_line,
                                                                                     ending_line)
-        else:
-            method_class_summary = TreeSitterParser.get_closest_method_class_in_snippet(file_summary, starting_line,
-                                                                                        ending_line)
         doc.page_content = f"The following code snippet is from a file at location " \
                            f"{os.path.join(dir_path, file_name)} " \
                            f"starting at line {starting_line} and ending at line {ending_line}. " \
@@ -101,6 +115,7 @@ def process_file(
                            f"The code snippet starting at line {starting_line} and ending at line " \
                            f"{ending_line} is \n ```\n{doc.page_content}\n``` "
 
+        print(doc.page_content)
     return split_docs
 
 
