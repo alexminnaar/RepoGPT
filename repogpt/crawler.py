@@ -115,7 +115,6 @@ def process_file(
                            f"The code snippet starting at line {starting_line} and ending at line " \
                            f"{ending_line} is \n ```\n{doc.page_content}\n``` "
 
-        print(doc.page_content)
     return split_docs
 
 
